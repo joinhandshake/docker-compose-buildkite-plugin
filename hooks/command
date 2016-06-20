@@ -46,6 +46,12 @@ build_meta_data_image_tag_key() {
   echo "docker-compose-plugin-built-image-tag-$1"
 }
 
+## Pre-command
+
+if [[ ! -z "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_PRE_COMMAND:-}" ]]; then
+  buildkite-run "$BUILDKITE_PLUGIN_DOCKER_COMPOSE_PRE_COMMAND"
+fi
+
 ## BUILD OR RUN
 
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
