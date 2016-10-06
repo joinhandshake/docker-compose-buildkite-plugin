@@ -31,19 +31,6 @@ steps:
         config: docker-compose.tests.yml
 ```
 
-or multiple config files:
-
-```yml
-steps:
-  - command: test.sh
-    plugins:
-      docker-compose:
-        run: app
-        config:
-          - docker-compose.yml
-          - docker-compose.test.yml
-```
-
 # Pre-building the image
 
 To speed up run parallel steps you can add a pre-building step to your pipeline, allowing all the `run` steps to skip image building:
@@ -101,7 +88,7 @@ The name of the service the command should be run within. If the docker-compose 
 
 ### `config` (optional)
 
-The file name of the Docker Compose configuration file to use. Can also be a list of filenames.
+The file name of the Docker Compose configuration file to use.
 
 Default: `docker-compose.yml`
 
