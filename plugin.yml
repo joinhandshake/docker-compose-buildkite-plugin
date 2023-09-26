@@ -72,6 +72,8 @@ configuration:
       type: string
     propagate-uid-gid:
       type: boolean
+    mount-buildkite-agent:
+      type: boolean
   oneOf:
     - required:
       - run
@@ -99,3 +101,4 @@ configuration:
     workdir: [ run ]
     user: [ run ]
     propagate-uid-gid: [ run ]
+    mount-buildkite-agent: [ run ]

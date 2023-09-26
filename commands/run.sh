@@ -62,9 +62,9 @@ fi
 
 # If there are multiple services to pull, run it in parallel (although this is now the default)
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
-  pull_params+=("pull" "--parallel" "${pull_services[@]}")
+  pull_params+=("pull" "--parallel" "--include-deps" "${pull_services[@]}")
 elif [[ ${#pull_services[@]} -eq 1 ]] ; then
-  pull_params+=("pull" "${pull_services[0]}")
+  pull_params+=("pull" "--include-deps" "${pull_services[0]}")
 fi
 
 # Pull down specified services
@@ -150,6 +150,28 @@ if [[ "$(plugin_read_config RM "true")" == "true" ]]; then
   run_params+=(--rm)
 fi
 
+# Optionally handle the mount-buildkite-agent option
+if [[ "$(plugin_read_config MOUNT_BUILDKITE_AGENT "false")" == "true" ]]; then
+  if [[ -z "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+    if ! command -v buildkite-agent >/dev/null 2>&1 ; then
+      echo -n "+++ 🚨 Failed to find buildkite-agent in PATH to mount into container, "
+      echo "you can disable this behaviour with 'mount-buildkite-agent:false'"
+    else
+      BUILDKITE_AGENT_BINARY_PATH=$(command -v buildkite-agent)
+    fi
+  fi
+fi
+
+# Mount buildkite-agent if we have a path for it
+if [[ -n "${BUILDKITE_AGENT_BINARY_PATH:-}" ]] ; then
+  run_params+=(
+    "-e" "BUILDKITE_JOB_ID"
+    "-e" "BUILDKITE_BUILD_ID"
+    "-e" "BUILDKITE_AGENT_ACCESS_TOKEN"
+    "--volume" "$BUILDKITE_AGENT_BINARY_PATH:/usr/bin/buildkite-agent"
+  )
+fi
+
 run_params+=("$run_service")
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_REQUIRE_PREBUILD:-}" =~ ^(true|on|1)$ ]] && [[ ! -f "$override_file" ]] ; then
@@ -174,9 +196,9 @@ fi
 if [[ "$(plugin_read_config DEPENDENCIES "true")" == "true" ]] ; then
   echo "~~~ :docker: Starting dependencies"
   if [[ ${#up_params[@]} -gt 0 ]] ; then
-    run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
+    retry "$pull_retries" run_docker_compose "${up_params[@]}" up -d --scale "${run_service}=0" "${run_service}"
   else
-    run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
+    retry "$pull_retries" run_docker_compose up -d --scale "${run_service}=0" "${run_service}"
   fi
 
   # Sometimes docker-compose leaves unfinished ansi codes
