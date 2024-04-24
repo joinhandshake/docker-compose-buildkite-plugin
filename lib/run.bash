@@ -4,9 +4,12 @@ compose_cleanup() {
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "false" ]]; then
     if [[ "$(plugin_read_config STOP_SIGNAL 'SIGKILL')" == "SIGKILL" ]]; then
       # Send all containers a SIGKILL
+      echo "+++ :skull: Killing all containers with SIGKILL"
       run_docker_compose kill || true
     else
-      run_docker_compose kill -s "$(plugin_read_config STOP_SIGNAL)" || true
+      signal=$(plugin_read_config STOP_SIGNAL)
+      echo "+++ :skull: Killing all containers with ${signal}"
+      run_docker_compose kill -s "${signal}" || true
     fi
   else
     # Send all containers a friendly SIGTERM, followed by a SIGKILL after exceeding the stop_grace_period
