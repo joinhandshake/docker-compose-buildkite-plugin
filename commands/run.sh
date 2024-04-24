@@ -13,6 +13,11 @@ expand_headers_on_error() {
   echo "^^^ +++"
 }
 trap expand_headers_on_error ERR
+stop_on_term() {
+  echo "~~~ :skull: Received TERM signal, stopping"
+  compose_cleanup
+}
+trap stop_on_term TERM
 
 test -f "$override_file" && rm "$override_file"
 
