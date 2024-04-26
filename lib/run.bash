@@ -3,6 +3,7 @@
 kill_or_wait_for_stop() {
 
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "true" ]]; then
+    echo "+++ :docker: Stopping using wait"
     # This will block until the container exits
     run_docker_compose wait
     container_exit_code=$?
@@ -12,22 +13,26 @@ kill_or_wait_for_stop() {
   # This will kill the container if it hasn't exited yet
   # `compose down` doesn't support force removing images
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
+    echo "+++ :docker: Force removing containers and volumes"
     run_docker_compose rm --force -v || true
   else
+    echo "+++ :docker: Force removing containers"
     run_docker_compose rm --force || true
   fi
 
   # Stop and remove all the linked services and network
   if [[ "$(plugin_read_config LEAVE_VOLUMES 'false')" == "false" ]]; then
+    echo "+++ :docker: Stopping and removing linked services, volumes, and network"
     run_docker_compose down --remove-orphans --volumes || true
   else
+    echo "+++ :docker: Stopping and removing linked services and network"
     run_docker_compose down --remove-orphans || true
   fi
 }
 
 compose_cleanup() {
   kill_or_wait_for_stop &
-  sleep 1
+  wait
   
   # No need to call kill directly for GRACEFUL_SHUTDOWN == false since rm --force will send the same kill signal
   if [[ "$(plugin_read_config GRACEFUL_SHUTDOWN 'false')" == "true" ]]; then
