@@ -396,8 +396,8 @@ fi
 if [[ -z $shell_disabled ]] && [[ ${#shell[@]} -eq 0 ]] ; then
   if is_windows ; then
     shell=("CMD.EXE" "/c")
-  else
-    shell=("/bin/sh" "-e" "-c")
+  # else
+  #   shell=("/bin/sh" "-e" "-c")
   fi
 fi
 
@@ -466,8 +466,10 @@ else
 fi
 
 exitcode=0
-echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
-run_docker_compose "${run_params[@]}" || exitcode=$?
+(
+  echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
+  run_docker_compose "${run_params[@]}"
+) || exitcode=$?
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
