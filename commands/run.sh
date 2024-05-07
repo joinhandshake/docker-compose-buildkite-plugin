@@ -466,10 +466,8 @@ else
 fi
 
 exitcode=0
-(
-  echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
-  run_docker_compose "${run_params[@]}" || exitcode=$?
-)
+echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
+run_docker_compose "${run_params[@]}" || exitcode=$?
 
 if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
