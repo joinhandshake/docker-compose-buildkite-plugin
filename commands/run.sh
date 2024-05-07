@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ueo pipefail
 
-. "$DIR/../lib/run.bash"
+. "$DIR/../lib/log.bash"
 
 # Run takes a service name, pulls down any pre-built image for that name
 # and then runs docker-compose run a generated project name
@@ -449,6 +449,7 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
 fi
 
 ensure_stopped() {
+  log 143
   echo '+++ :warning: Signal received, stopping container gracefully'
   # docker stop "${container_name}" || true
   compose_cleanup ${run_service}
