@@ -73,9 +73,9 @@ fi
 
 # If there are multiple services to pull, run it in parallel (although this is now the default)
 if [[ ${#pull_services[@]} -gt 1 ]] ; then
-  pull_params+=("pull" "--parallel" "${pull_services[@]}")
+  pull_params+=("pull" "--parallel" "--include-deps" "${pull_services[@]}")
 elif [[ ${#pull_services[@]} -eq 1 ]] ; then
-  pull_params+=("pull" "${pull_services[0]}")
+  pull_params+=("pull" "--include-deps" "${pull_services[0]}")
 fi
 
 # Pull down specified services
