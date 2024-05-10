@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ueo pipefail
 
+. "$DIR/../lib/log.bash"
+
 # Run takes a service name, pulls down any pre-built image for that name
 # and then runs docker-compose run a generated project name
 
@@ -423,35 +425,30 @@ elif [[ ${#command[@]} -gt 0 ]] ; then
 fi
 
 ensure_stopped() {
-  echo '+++ :warning: Signal received, stopping container'
-  docker stop "${container_name}" || true
+  log 143
+  echo '+++ :warning: Signal received, stopping container gracefully'
+  # docker stop "${container_name}" || true
+  compose_cleanup ${run_service}
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
-  exitcode='TRAP'
+  exit 143
 }
 
-trap ensure_stopped SIGINT SIGTERM SIGQUIT
+trap 'ensure_stopped "$?"' SIGINT SIGTERM SIGQUIT
 
 if [[ "${BUILDKITE_PLUGIN_DOCKER_COMPOSE_COLLAPSE_RUN_LOG_GROUP:-false}" = "true" ]]; then
   group_type="---"
 else
   group_type="+++"
 fi
-# Disable -e to prevent cancelling step if the command fails for whatever reason
-set +e
-( # subshell is necessary to trap signals (compose v2 fails to stop otherwise)
+
+exitcode=0
+(
   echo "${group_type} :docker: Running ${display_command[*]:-} in service $run_service" >&2
   run_docker_compose "${run_params[@]}"
-)
-exitcode=$?
+) || exitcode=$?
 
-# Restore -e as an option.
-set -e
-
-if [[ $exitcode = "TRAP" ]]; then
-  # command failed due to cancellation signal, make sure there is an error but no further output
-  exitcode=-1
-elif [[ $exitcode -ne 0 ]] ; then
+if [[ $exitcode -ne 0 ]] ; then
   echo "^^^ +++"
   echo "+++ :warning: Failed to run command, exited with $exitcode, run params:"
   echo "${run_params[@]}"
