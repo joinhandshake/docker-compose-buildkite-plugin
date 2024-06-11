@@ -7,7 +7,7 @@ env:
 steps:
   - label: ":shell: Shellcheck"
     plugins:
-      shellcheck#v1.1.2:
+      shellcheck#v1.3.0:
         files:
           - hooks/**
           - lib/**
@@ -15,13 +15,14 @@ steps:
 
   - label: ":sparkles: Lint"
     plugins:
-      plugin-linter#v2.0.0:
+      plugin-linter#v3.2.0:
         id: docker-compose
 
   - label: ":bash: Tests"
     plugins:
       ${BUILDKITE_PULL_REQUEST_REPO:-$BUILDKITE_REPO}#${BUILDKITE_COMMIT}:
         run: tests
+        command: ["bats", "tests", "tests/v2"]
 
   # The rest of the steps are integration tests
 
@@ -113,6 +114,8 @@ steps:
         require-prebuild: true
         config: tests/composefiles/docker-compose.v2.1.yml
         commmand: ["/hello"]
+
+  - wait: ~
 
   - label: prebuild with custom image-name
     key: prebuild-custom-image-name
