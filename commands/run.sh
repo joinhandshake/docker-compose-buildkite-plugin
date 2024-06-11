@@ -426,9 +426,9 @@ fi
 
 ensure_stopped() {
   log 143
-  echo '+++ :warning: Signal received, stopping container gracefully'
-  # docker stop "${container_name}" || true
-  compose_cleanup ${run_service}
+  echo '+++ :warning: Signal received, stopping container'
+  docker stop "${container_name}" || true
+  # compose_cleanup ${run_service} # This works but causes the docker process time to restart before the container dies. This must be a docker setting somewhere causing the restart, but I can't find it
   echo '~~~ Last log lines that may be missing above (if container was not already removed)'
   docker logs "${container_name}" || true
   exit 143
